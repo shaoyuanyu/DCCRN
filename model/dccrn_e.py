@@ -133,8 +133,6 @@ class DCCRN(nn.Module):
 		for layer in self.encoder:
 			out = layer(out)
 			#encoder_out.append(out)
-
-			print("out: {} Byte({} Mb)".format( sys.getsizeof(out), sys.getsizeof(out)/(1024*1024) ))
 			torch.cuda.empty_cache()
 		
 		batch_size, channels, dims, lengths = out.size()

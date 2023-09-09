@@ -10,6 +10,10 @@ from PMU.gpu_mem_track import MemTracker
 
 load_weight = False
 weight_path = "./model_weight/epoch10_weight.pt"
+
+dataset_path = "../../dataset/primewords_md_2018_set1"
+noises_path = "../../dataset/noises/dormitory_adjusted/-40db"
+
 device = "cuda:0"
 batch_size = 32
 epoch = 10
@@ -51,9 +55,9 @@ def main():
     gpu_tracker = MemTracker()
 
     #
-    train_dataset = PrimewordsMD2018(dataset_path="C://Projects/Whisper/train_data/primewords_md_2018_set1/", noise_path="C://Projects/Whisper/train_data/noise/dormitory_adjusted/-40db/", use_rate=0.1)
+    train_dataset = PrimewordsMD2018(dataset_path="{}/train_data".format(dataset_path), noise_path=noises_path, use_rate=0.1)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    validate_dataset = PrimewordsMD2018(dataset_path="C://Projects/Whisper/test_data/PrimewordsMD2018/", noise_path="C://Projects/Whisper/train_data/noise/dormitory_adjusted/-40db/", use_rate=0.2)
+    validate_dataset = PrimewordsMD2018(dataset_path="{}/test_data".format(dataset_path), noise_path=noises_path, use_rate=0.2)
     validate_loader = DataLoader(validate_dataset, batch_size=batch_size)
 
     # DCCRN-E 论文中宣称的最适合用于real-time的
