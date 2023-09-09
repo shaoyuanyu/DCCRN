@@ -6,7 +6,7 @@
 /model/PMU/__pycache__
 
 /model_weight/*
-!model_weight
+!/model_weight
 
 /saved_weight/*
-!saved_weight
+!/saved_weight
