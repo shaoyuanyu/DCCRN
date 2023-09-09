@@ -7,3 +7,8 @@ numpy ~= 1.22.4
 soundfile ~= 0.12.1
 scipy == 1.7.3
 librosa ~= 0.10.1
+
+nni
+
+crc32c
+tensorboardX
