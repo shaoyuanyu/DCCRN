@@ -16,7 +16,11 @@ dataset_path = "../../dataset/primewords_md_2018_set1/"
 noises_path = "../../dataset/noises/dormitory_adjusted/-40db/"
 
 device = "cuda:0"
+
+# 实际batch size相当于 batch_size * accumulation_steps
 batch_size = 16
+accumulation_steps = 4
+
 epoch = 1000
 learning_rate = 1e-3
 
@@ -33,8 +37,7 @@ def validateModel(model, validate_loader):
 			x = x.float().to(device)
 			label = label.float().to(device)
 
-			spec, pred = model(x)
-			del spec
+			pred = model(x)[1]
 
 			total += 1
 			loss += model.loss(pred, label, loss_mode='SI-SNR').item()
@@ -76,8 +79,9 @@ def main():
 	# 损失函数
 	# model内置 SI-SNR
 
-	# 优化器 SGD
-	optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
+	# 优化器 SGD/Adam
+	#optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
+	optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
 	# 获取训练开始时间
 	train_start_time = time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime())
@@ -94,13 +98,7 @@ def main():
 		tensorboard_writer.add_scalar("epoch", epoch_i+1, global_step=total_step)
 		tensorboard_writer.add_text("current epoch", str(epoch_i+1))
 
-		for step, (x, label) in enumerate(train_loader):
-			# 显示进度
-			#if step % 2 == 0:
-			#    print("#", end="")
-			if step == 0:
-				print("  数据读取完成,开始训练...")
-			
+		for step, (x, label) in enumerate(train_loader):			
 			total_step += 1
 			
 			# 数据指定device
@@ -112,34 +110,34 @@ def main():
 			label = label.float()
 
 			# 预测
-			spec, pred = model(x)
-			del spec
+			pred = model(x)[1]
 
 			# 计算loss
 			loss = model.loss(pred, label, loss_mode='SI-SNR')
-
-			# 梯度置零
-			optimizer.zero_grad()
+			acc = 100-loss
+			
+			# 梯度累加
+			loss = loss / accumulation_steps
 
 			# 反向传播
 			loss.backward()
 
-			# 参数更新
-			optimizer.step()
+			if (step+1) % accumulation_steps == 0:
+				# 更新参数
+				optimizer.step()
+				# 梯度置零
+				optimizer.zero_grad()
 
 			# 清理显存
 			torch.cuda.empty_cache()
 
 			# tensorboard数据可视化
-			tensorboard_writer.add_scalar("loss", loss.item(), global_step=total_step)
-			tensorboard_writer.add_scalar("acc", (100-loss).item(), global_step=total_step)
+			tensorboard_writer.add_scalar("acc", acc.item(), global_step=total_step)
 
 			if step % 20 == 0:
-				print("--step {} - loss: {}".format(step+1, loss))
+				print("--step {} - acc: {}".format(step+1, acc))
 		
 		print()
-
-		del x, label, pred
 		
 		if (epoch_i + 1) % 5 == 0:
 			# 保存权重
@@ -168,13 +166,6 @@ def main():
 					with open('error_log.txt', 'a', encoding='utf-8') as f:
 						f.write("{}: \n{}\n\n".format(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), e))
 						f.close()
-		
-		# 更新数据集
-		if (epoch_i+1) % 10 == 0:
-			train_dataset = PrimewordsMD2018(dataset_path="{}/train_data".format(dataset_path), noise_path=noises_path, use_rate=0.1)
-			train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-			validate_dataset = PrimewordsMD2018(dataset_path="{}/test_data".format(dataset_path), noise_path=noises_path, use_rate=0.1)
-			validate_loader = DataLoader(validate_dataset, batch_size=batch_size)
 	
 	tensorboard_writer.export_scalars_to_json("./running_data/{}".format(train_start_time))
 	tensorboard_writer.close()

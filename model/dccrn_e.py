@@ -1,8 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import sys
-#from complexPyTorch.complexLayers import ComplexConv2d, ComplexConvTranspose2d
 
 from .conv_stft import ConvSTFT, ConviSTFT
 from .complexnn import ComplexConv2d, ComplexConvTranspose2d, complex_cat
@@ -128,11 +126,13 @@ class DCCRN(nn.Module):
 
 		del real, imag, cspecs
 
-		#encoder_out = []
+		encoder_out = []
 		
 		for layer in self.encoder:
 			out = layer(out)
-			#encoder_out.append(out)
+			#print('encoder', out.size())
+			encoder_out.append(out)
+
 			torch.cuda.empty_cache()
 		
 		batch_size, channels, dims, lengths = out.size()
@@ -146,21 +146,11 @@ class DCCRN(nn.Module):
 		out = out.permute(1, 2, 3, 0)
 		
 		for idx in range(len(self.decoder)):
-			wanted_inx = len(self.encoder) - 1 - idx
-			for i in range(wanted_inx+1):
-				layer = self.encoder[i]
-				out0 = layer(out0)
-			wanted_out = out0
-
-			#out = complex_cat( [out, encoder_out[-1 - idx]], 1 )
-			out = complex_cat( [out, wanted_out], 1 )
-
-			del wanted_out, out0
-
+			out = complex_cat( [out, encoder_out[-1 - idx]], 1 )
 			out = self.decoder[idx](out)
 			out = out[... , 1:]
 		
-		#del encoder_out
+		del encoder_out
 
 		mask_real = out[:, 0]
 		mask_imag = out[:, 1] 

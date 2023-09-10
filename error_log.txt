@@ -7,3 +7,12 @@ module 'time' has no attribute 'tzset'
 2023-09-10 12:15:12: 
 CUDA out of memory. Tried to allocate 242.00 MiB (GPU 0; 6.00 GiB total capacity; 5.12 GiB already allocated; 0 bytes free; 5.17 GiB reserved in total by PyTorch) If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.  See documentation for Memory Management and PYTORCH_CUDA_ALLOC_CONF
 
+2023-09-10 15:02:59: 
+trainStep() missing 4 required positional arguments: 'model', 'x', 'label', and 'optimizer'
+
+2023-09-10 15:03:30: 
+local variable 'out0' referenced before assignment
+
+2023-09-10 15:06:01: 
+local variable 'out0' referenced before assignment
+
