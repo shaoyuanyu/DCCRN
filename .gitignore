@@ -10,3 +10,8 @@
 
 /saved_weight/*
 !/saved_weight
+
+/error_log.txt
+
+/running_data/*
+!/running_data
