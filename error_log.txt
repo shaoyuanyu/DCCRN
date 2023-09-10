@@ -1,0 +1,9 @@
+2023-09-10 12:11:50: 
+num_samples should be a positive integer value, but got num_samples=0
+
+2023-09-10 12:13:38: 
+module 'time' has no attribute 'tzset'
+
+2023-09-10 12:15:12: 
+CUDA out of memory. Tried to allocate 242.00 MiB (GPU 0; 6.00 GiB total capacity; 5.12 GiB already allocated; 0 bytes free; 5.17 GiB reserved in total by PyTorch) If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.  See documentation for Memory Management and PYTORCH_CUDA_ALLOC_CONF
+
