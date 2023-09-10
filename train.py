@@ -1,6 +1,5 @@
 import torch
 from torch.utils.data import DataLoader
-import numpy as np
 import time
 import os
 
@@ -8,16 +7,16 @@ from model.dccrn_e import DCCRN
 from Datasets import PrimewordsMD2018
 from PMU.gpu_mem_track import MemTracker
 
-load_weight = False
-weight_path = "./model_weight/epoch10_weight.pt"
+load_weight = True
+weight_path = "./model_weight/2023-09-09_09-03-47_epoch15_weight.pt"
 
-dataset_path = "../../dataset/primewords_md_2018_set1"
-noises_path = "../../dataset/noises/dormitory_adjusted/-40db"
+dataset_path = "../dataset/primewords_md_2018_set1"
+noises_path = "../dataset/noises/dormitory-40"
 
 device = "cuda:0"
-batch_size = 32
-epoch = 10
-learning_rate = 1e-2
+batch_size = 48
+epoch = 50
+learning_rate = 1e-3
 
 # 验证
 def validateModel(model, validate_loader):
@@ -57,7 +56,7 @@ def main():
     #
     train_dataset = PrimewordsMD2018(dataset_path="{}/train_data".format(dataset_path), noise_path=noises_path, use_rate=0.1)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    validate_dataset = PrimewordsMD2018(dataset_path="{}/test_data".format(dataset_path), noise_path=noises_path, use_rate=0.2)
+    validate_dataset = PrimewordsMD2018(dataset_path="{}/test_data".format(dataset_path), noise_path=noises_path, use_rate=0.1)
     validate_loader = DataLoader(validate_dataset, batch_size=batch_size)
 
     # DCCRN-E 论文中宣称的最适合用于real-time的
@@ -80,7 +79,7 @@ def main():
 
     # 获取训练开始时间
     train_start_time = time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime())
-    os.mkdir("C://Projects/Whisper/models/DCCRN/saved_weight/{}/".format(train_start_time))
+    os.mkdir("./saved_weight/{}/".format(train_start_time))
 
     # 训练
     for epoch_i in range(epoch):
@@ -90,6 +89,8 @@ def main():
             # 显示进度
             #if step % 2 == 0:
             #    print("#", end="")
+            if step == 0:
+                print("  数据读取完成,开始训练...")
             
             # 数据指定device
             x = x.to(device)
@@ -119,7 +120,7 @@ def main():
             torch.cuda.empty_cache()
 
             if step % 20 == 0:
-                print("--step {} - loss: {}".format(step+1, loss))
+                print("  --step {} - loss: {}".format(step+1, loss))
         
         print()
 
@@ -137,7 +138,7 @@ def main():
             print("validating...")
             acc_train = validateModel(model, train_loader)
             acc_val = validateModel(model, validate_loader)
-            print("第 {} 轮训练\n  训练集准确率: {}\n  验证集准确率: {}".format(epoch_i+1, acc_train, acc_val))
+            print("  epoch{}验证\n  训练集准确率: {}\n  验证集准确率: {}\n".format(epoch_i+1, acc_train, acc_val))
 
 if __name__ == '__main__':
     main()

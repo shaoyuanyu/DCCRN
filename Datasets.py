@@ -63,10 +63,9 @@ class PrimewordsMD2018(Dataset):
 				data_path = dir_path + "/" + file_name
 
 				# 此处最好加上文件存在性和完整性等项目的检查
-				# ...
-				
-				data_paths.append(data_path)
-				#print(data_path)
+				if data_path[-4:] == ".wav":
+					data_paths.append(data_path)
+					#print(data_path)
 
 		return data_paths
 
